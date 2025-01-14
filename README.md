@@ -102,3 +102,6 @@ EXPOSE 8080
 
 CMD [ "/app/main" ]
 ```
+
+App customization displaying our team members' names: 
+![App customization](image1.png "App customization") 
