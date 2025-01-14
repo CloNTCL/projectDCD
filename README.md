@@ -6,7 +6,7 @@
 ### Architecture Diagram and Tool Chain  
 Below is the diagram of our solution, including the toolchain we implemented to achieve full continuous deployment of the application:  
 
-![Pipeline architecture](webapi/image.png "Pipeline architecture")   
+![Pipeline architecture](./image.png "Pipeline architecture")   
 
 Our architecture demonstrates an automated workflow for software development and deployment, commonly referred to as a CI/CD pipeline (Continuous Integration / Continuous Deployment).  
 
