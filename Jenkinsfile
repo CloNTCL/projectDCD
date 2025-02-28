@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/ST2DCE/project'
+                git 'https://github.com/CloNTCL/projectDCD/'
             }
         }
         stage('Build Docker Image') {
