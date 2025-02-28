@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-app-production
+  name: go-app-development
   namespace: prod
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: go-app
@@ -15,15 +15,15 @@ spec:
     spec:
       containers:
         - name: go-app
-          image: my-go-app:latest
+          image: efrei2023/my-go-app:latest
           ports:
             - containerPort: 8181
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent  
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: go-app-production-service
+  name: go-app-service
   namespace: prod
 spec:
   selector:
