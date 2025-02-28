@@ -15,10 +15,10 @@ spec:
     spec:
       containers:
         - name: go-app
-          image: my-go-app:latest
+          image: efrei2023/my-go-app:latest
           ports:
             - containerPort: 8181
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent  
 ---
 apiVersion: v1
 kind: Service
