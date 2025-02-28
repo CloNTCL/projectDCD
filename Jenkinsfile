@@ -21,12 +21,33 @@ pipeline {
             }
         }
         
-        stage('Deploy to Minikube') {
+        stage('Check Healthy Container') {
             steps {
-                // sh 'eval $(minikube docker-env)'
-                // sh 'docker build -t my-go-app .'
-                // sh 'minikube image load my-go-app'
-                sh 'kubectl apply -f k8s/deployment.yaml'
+                sh 'curl http://localhost:8181/whoami'
+            }
+        }
+        
+        stage('Create Namespace Dev') {
+            steps {
+                sh 'kubectl create namespace dev || true' // Évite une erreur si le namespace existe déjà
+            }
+        }
+        
+        stage('Create Namespace Prod') {
+            steps {
+                sh 'kubectl create namespace prod || true'
+            }
+        }
+        
+        stage('Deploy to Minikube (Dev)') {
+            steps {
+                sh 'kubectl apply -f k8s/deployment.yaml -n dev'
+            }
+        }
+        
+        stage('Deploy to Minikube (Prod)') {
+            steps {
+                sh 'kubectl apply -f k8s/production-deployment.yaml -n prod'
             }
         }
        
@@ -35,8 +56,8 @@ pipeline {
                 expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
             }
             steps {
-                sh 'kubectl apply -f k8s/production-deployment.yaml'
+                sh 'kubectl apply -f k8s/production-deployment.yaml -n prod'
             }
         }
-    } // 
-} // 
+    }
+}
