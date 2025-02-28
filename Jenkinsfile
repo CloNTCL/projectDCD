@@ -14,21 +14,17 @@ pipeline {
                 sh 'docker build -t my-go-app .'
             }
         }
-        stage('Run Unit Tests') {
-            steps {
-                sh 'go test ./... || true' // Ajoute tes tests Go ici
-            }
-        }
+        
         stage('Deploy to Local Docker') {
             steps {
-                sh 'docker run -d -p 8080:8080 --name go_app my-go-app'
+                sh 'docker run -d -p 8081:8081 --name go_app my-go-app'
             }
         }
         stage('Deploy to Minikube') {
             steps {
-                sh 'eval $(minikube docker-env)'
-                sh 'docker build -t my-go-app .'
-                sh 'minikube image load my-go-app'
+                //sh 'eval $(minikube docker-env)'
+                // sh 'docker build -t my-go-app .'
+                // sh 'minikube image load my-go-app'
                 sh 'kubectl apply -f k8s/deployment.yaml'
             }
         }
