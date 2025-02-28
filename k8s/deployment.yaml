@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-app-development
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-app
+  template:
+    metadata:
+      labels:
+        app: go-app
+    spec:
+      containers:
+        - name: go-app
+          image: my-go-app:latest
+          ports:
+            - containerPort: 8181
+          imagePullPolicy: Never
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-app-service
+  namespace: dev
+spec:
+  selector:
+    app: go-app
+  ports:
+    - protocol: TCP
+      port: 8181
+      targetPort: 8181
+  type: NodePort

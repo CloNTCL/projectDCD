@@ -8,6 +8,6 @@ WORKDIR /app
 
 RUN go build -o main .
 
-EXPOSE 8080
+EXPOSE 8181
 
 CMD [ "/app/main" ]
