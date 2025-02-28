@@ -110,6 +110,10 @@ CMD [ "/app/main" ]
 
 ![jen2](jen2.webp "jen2")  
 
+![jen4](jen2.webp "jen4") 
+
+Here is our jenkins pipeline:
+
 ```jenkins
 pipeline {
     agent any
@@ -119,7 +123,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/CloNTCL/projectDCD/'
+                git branch: 'main', url: 'https://github.com/CloNTCL/projectDCD/'
             }
         }
         stage('Build Docker Image') {
@@ -130,28 +134,211 @@ pipeline {
         
         stage('Deploy to Local Docker') {
             steps {
-                sh 'docker run -d -p 8081:8081 --name go_app my-go-app'
+                sh 'docker run -d -p 8181:8181 --name go_app my-go-app'
             }
         }
+        
         stage('Deploy to Minikube') {
             steps {
-                //sh 'eval $(minikube docker-env)'
+                // sh 'eval $(minikube docker-env)'
                 // sh 'docker build -t my-go-app .'
                 // sh 'minikube image load my-go-app'
                 sh 'kubectl apply -f k8s/deployment.yaml'
             }
         }
+       
         stage('Deploy to Production') {
             when {
-                expression { return currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
             }
             steps {
                 sh 'kubectl apply -f k8s/production-deployment.yaml'
             }
         }
-    }
-}
+    } // 
+} // 
+
 ```
 
 App customization displaying our team members' names: 
-![App customization](image1.png "App customization") 
+![App customization](image1.webp "App customization") 
+
+### Update the pipeline to deploy the application on your Kubernetes : without using docker hub
+
+We created 2 files in k8s folder deployment.yaml for the develop deployment and production-deployment for the production deployment
+
+#deployment.yaml
+
+```deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-app-development
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-app
+  template:
+    metadata:
+      labels:
+        app: go-app
+    spec:
+      containers:
+        - name: go-app
+          image: efrei2023/my-go-app:latest
+          ports:
+            - containerPort: 8181
+          imagePullPolicy: IfNotPresent  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-app-service
+  namespace: dev
+spec:
+  selector:
+    app: go-app
+  ports:
+    - protocol: TCP
+      port: 8181
+      targetPort: 8181
+  type: NodePort
+```
+#production-deployment.yaml
+```production-deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-app-development
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-app
+  template:
+    metadata:
+      labels:
+        app: go-app
+    spec:
+      containers:
+        - name: go-app
+          image: efrei2023/my-go-app:latest
+          ports:
+            - containerPort: 8181
+          imagePullPolicy: IfNotPresent  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-app-service
+  namespace: prod
+spec:
+  selector:
+    app: go-app
+  ports:
+    - protocol: TCP
+      port: 8181
+      targetPort: 8181
+  type: NodePort
+```
+
+We need to update Jenkinsfile
+
+#Jenkinsfile
+
+```Jenkinsfile
+pipeline {
+    agent any
+    environment {
+        DOCKER_IMAGE = 'my-go-app'
+    }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/CloNTCL/projectDCD/'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t my-go-app .'
+            }
+        }
+        
+        stage('Deploy to Local Docker') {
+            steps {
+                sh 'docker run -d -p 8181:8181 --name go_app my-go-app'
+            }
+        }
+        
+        stage('Check Healthy Container') {
+            steps {
+                sh 'curl http://localhost:8181/whoami'
+            }
+        }
+        
+        stage('Create Namespace Dev') {
+            steps {
+                sh 'kubectl create namespace dev || true' // Évite une erreur si le namespace existe déjà
+            }
+        }
+        
+        stage('Create Namespace Prod') {
+            steps {
+                sh 'kubectl create namespace prod || true'
+            }
+        }
+        
+        stage('Deploy to Minikube (Dev)') {
+            steps {
+                sh 'kubectl apply -f k8s/deployment.yaml -n dev'
+            }
+        }
+        
+        stage('Deploy to Minikube (Prod)') {
+            steps {
+                sh 'kubectl apply -f k8s/production-deployment.yaml -n prod'
+            }
+        }
+       
+        stage('Deploy to Production') {
+            when {
+                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+            }
+            steps {
+                sh 'kubectl apply -f k8s/production-deployment.yaml -n prod'
+            }
+        }
+    }
+}
+
+
+```
+![jenkinsU](jenkinsU.webp "jenkinsU") 
+
+Resultats
+
+En dev
+
+![dev](dev.webp "dev") 
+
+En prod
+![prod](prod.webp "prod") 
+
+### . BONUS (+1): Build the docker image using the buildpack utility and describe what you observe in comparison with the Dockerfile option.
+
+First we need to install the buildpack utility in our local machine
+
+(curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.32.1/pack-v0.32.1-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+
+use the command pack builder suggest that tell you what image would be best to use for your code.
+
+pack build gocloudpack --builder http://gcr.io/buildpacks/builder:v1 --path .
+
+![pack](pack.webp "pack") 
+
+In the following picture, we see that buildPack allows us to create lighter images compared to Docker
+
+![comp](comp.webp "comp") 
