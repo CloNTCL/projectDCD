@@ -1,0 +1,21 @@
+alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m 
+    route:
+      group_wait: 20s  
+      group_interval: 4m  # Correction ici
+      repeat_interval: 4h 
+      receiver: 'email-notifications'  
+      routes: []  
+    receivers:
+      - name: 'email-notifications'
+        email_configs:
+          - to: 'abdoul-aziz.zakari-madougou@intervenants.efrei.net'  
+            from: 'signolib59@gmail.com'  
+            smarthost: 'smtp.gmail.com:587'  
+            auth_username: 'signolib59@gmail.com' 
+            auth_password: 'vsoguzvvippnxmzn'  
+            auth_identity: 'signolib59@gmail.com' 
+            require_tls: true
+            send_resolved: true
