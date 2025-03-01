@@ -444,7 +444,7 @@ Create the `alertmanager-config.yaml` file with the appropriate email configurat
 helm upgrade --reuse-values -f alertmanager-config.yaml prometheus prometheus-community/prometheus
 ```
 
-### Part Three – Logs Management
+## Part Three – Logs Management
 
 Install the component by using the  Helm chart provided by grafana :
 Firstly we configure the loki-stack values
